@@ -30,7 +30,8 @@ class Assignment:
         .csv("file:/C:/Users/Tuomas/Documents/COMP.CS.320/tuomas/python/data/dataD3.csv").cache()
 
     # the data frame to be used in task 3 (based on dataD2 but containing numeric labels)
-    dataD2WithLabels: DataFrame = None  # REPLACE with actual implementation
+    dataD2WithLabels: DataFrame = StringIndexer(inputCol='LABEL', outputCol='LABEL_NUMERIC')\
+        .fit(dataD2).transform(dataD2)
 
     @staticmethod
     def task1(df: DataFrame, k: int) -> List[Tuple[float, float]]:
@@ -52,16 +53,14 @@ class Assignment:
 
     @staticmethod
     def task3(df: DataFrame, k: int) -> List[Tuple[float, float]]:
-        indexerModel: StringIndexerModel = StringIndexer(inputCol='LABEL', outputCol='LABEL_NUMERIC').fit(df)
-        indexedDF: DataFrame = indexerModel.transform(df)
         va: VectorAssembler = VectorAssembler(inputCols=['a', 'b', 'LABEL_NUMERIC'], outputCol='features')
-        assembledDF: DataFrame = va.transform(indexedDF)
+        assembledDF: DataFrame = va.transform(df)
         kmeans: KMeans = KMeans(featuresCol='features', k=k)
         model: KMeansModel = kmeans.fit(assembledDF)
 
         clusters: List[Tuple[float, float, float]] = list(tuple([tuple(center) for center in model.clusterCenters()]))
-        clusters = sorted(clusters, key=lambda x: x[2], reverse=True)[0:2]
-        clustersTop2Fatal: List[Tuple[float, float]] = [t[:2] for t in clusters]
+        clustersTop2Fatal: List[Tuple[float, float]] = \
+            [t[:2] for t in sorted(clusters, key=lambda x: x[2], reverse=True)[0:2]]
 
         return clustersTop2Fatal
 
@@ -69,3 +68,4 @@ class Assignment:
     @staticmethod
     def task4(df: DataFrame, low: int, high: int) -> List[Tuple[int, float]]:
         pass  # REPLACE with actual implementation
+

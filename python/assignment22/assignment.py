@@ -4,7 +4,6 @@ from typing import List, Tuple
 
 from pyspark.sql import DataFrame
 from pyspark.sql import SparkSession
-from pyspark.sql import functions
 from pyspark.ml.feature import VectorAssembler
 from pyspark.ml.clustering import KMeans
 from pyspark.ml.clustering import KMeansModel
@@ -51,9 +50,6 @@ class Assignment:
         clusters: List[Tuple[float, float, float]] = list(tuple([tuple(center) for center in model.clusterCenters()]))
         return clusters
 
-    print(task1(dataD2, 3))
-    print(task2(dataD3, 3))
-
     @staticmethod
     def task3(df: DataFrame, k: int) -> List[Tuple[float, float]]:
         indexerModel: StringIndexerModel = StringIndexer(inputCol='LABEL', outputCol='LABEL_NUMERIC').fit(df)
@@ -62,26 +58,12 @@ class Assignment:
         assembledDF: DataFrame = va.transform(indexedDF)
         kmeans: KMeans = KMeans(featuresCol='features', k=k)
         model: KMeansModel = kmeans.fit(assembledDF)
-        ##transformed = model.transform(assembledDF)
-        transformed = model.transform(assembledDF).groupBy("prediction").agg(
-            functions.sum(functions.col("LABEL_NUMERIC")),
-            functions.avg(functions.col("a")),
-            functions.avg(functions.col('b'))) \
-            .sort(functions.col("sum(LABEL_NUMERIC)").desc()).select("*")
-        ##print(model.summary)
-        for i in transformed.collect():
-            print(i)
 
         clusters: List[Tuple[float, float, float]] = list(tuple([tuple(center) for center in model.clusterCenters()]))
         clusters = sorted(clusters, key=lambda x: x[2], reverse=True)[0:2]
         clustersTop2Fatal: List[Tuple[float, float]] = [t[:2] for t in clusters]
 
-        print(clustersTop2Fatal)
-        print(clusters)
-
-        return clusters2
-
-    task3(dataD2, 4)
+        return clustersTop2Fatal
 
     # Parameter low is the lowest k and high is the highest one.
     @staticmethod

@@ -8,7 +8,8 @@ from pyspark.ml.feature import VectorAssembler
 from pyspark.ml.clustering import KMeans
 from pyspark.ml.clustering import KMeansModel
 from pyspark.ml.feature import StringIndexer
-from pyspark.ml.feature import StringIndexerModel
+from pyspark.ml.feature import MinMaxScaler
+from pyspark.ml import Pipeline, PipelineModel
 
 
 class Assignment:
@@ -23,7 +24,7 @@ class Assignment:
 
     # the data frame to be used in tasks 1 and 4
     dataD2: DataFrame = spark.read.options(inferSchema=True, header=True) \
-        .csv("file:/C:/Users/Tuomas/Documents/COMP.CS.320/tuomas/python/data/dataD2.csv").cache()
+        .csv("file:/C:/Users/Tuomas/Documents/COMP.CS.320/tuomas/python/data/dataD2.csv")
 
     # the data frame to be used in task 2
     dataD3: DataFrame = spark.read.options(inferSchema=True, header=True) \
@@ -36,19 +37,21 @@ class Assignment:
     @staticmethod
     def task1(df: DataFrame, k: int) -> List[Tuple[float, float]]:
         va: VectorAssembler = VectorAssembler(inputCols=['a', 'b'], outputCol='features')
-        assembledDF: DataFrame = va.transform(df)
-        kmeans: KMeans = KMeans(featuresCol='features', k=k)
-        model: KMeansModel = kmeans.fit(assembledDF)
-        clusters: List[Tuple[float, float]] = list(tuple([tuple(center) for center in model.clusterCenters()]))
+        scaler: MinMaxScaler = MinMaxScaler(inputCol="features", outputCol="scaledFeatures")
+        kmeans: KMeans = KMeans(featuresCol="scaledFeatures", k=k, seed=1)
+        pipeline: Pipeline = Pipeline(stages=[va, scaler, kmeans])
+        model: PipelineModel = pipeline.fit(df)
+        clusters: List[Tuple[float, float]] = list(tuple([tuple(center) for center in model.stages[2].clusterCenters()]))
         return clusters
 
     @staticmethod
     def task2(df: DataFrame, k: int) -> List[Tuple[float, float, float]]:
         va: VectorAssembler = VectorAssembler(inputCols=['a', 'b', 'c'], outputCol='features')
-        assembledDF: DataFrame = va.transform(df)
-        kmeans: KMeans = KMeans(featuresCol='features', k=k)
-        model: KMeansModel = kmeans.fit(assembledDF)
-        clusters: List[Tuple[float, float, float]] = list(tuple([tuple(center) for center in model.clusterCenters()]))
+        scaler: MinMaxScaler = MinMaxScaler(inputCol="features", outputCol="scaledFeatures")
+        kmeans: KMeans = KMeans(featuresCol="scaledFeatures", k=k, seed=1)
+        pipeline: Pipeline = Pipeline(stages=[va, scaler, kmeans])
+        model: PipelineModel = pipeline.fit(df)
+        clusters: List[Tuple[float, float, float]] = list(tuple([tuple(center) for center in model.stages[2].clusterCenters()]))
         return clusters
 
     @staticmethod

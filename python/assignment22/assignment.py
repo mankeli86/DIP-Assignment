@@ -13,6 +13,8 @@ from pyspark.ml.feature import MinMaxScaler
 from pyspark.ml.feature import StandardScaler
 from pyspark.ml import Pipeline, PipelineModel
 from pyspark.ml.evaluation import ClusteringEvaluator
+from pyspark.sql.types import StructType, StructField, StringType, FloatType
+import matplotlib.pyplot as plt
 
 
 class Assignment:
@@ -25,12 +27,27 @@ class Assignment:
     spark.sparkContext.setLogLevel("ERROR")
     spark.conf.set("spark.sql.shuffle.partitions", "5")
 
+    # Schema for dataD2
+    schema1: StructType = StructType([
+        StructField("a", FloatType(), True),
+        StructField("b", FloatType(), True),
+        StructField("LABEL", StringType(), True)
+    ])
+
+    # Schema for dataD3
+    schema2: StructType = StructType([
+        StructField("a", FloatType(), True),
+        StructField("b", FloatType(), True),
+        StructField("c", FloatType(), True),
+        StructField("LABEL", StringType(), True)
+    ])
+
     # the data frame to be used in tasks 1 and 4
-    dataD2: DataFrame = spark.read.options(inferSchema=True, header=True) \
+    dataD2: DataFrame = spark.read.options(header=True).schema(schema1) \
         .csv("file:/C:/Users/Tuomas/Documents/COMP.CS.320/tuomas/python/data/dataD2.csv").cache()
 
     # the data frame to be used in task 2
-    dataD3: DataFrame = spark.read.options(inferSchema=True, header=True) \
+    dataD3: DataFrame = spark.read.options(header=True).schema(schema2) \
         .csv("file:/C:/Users/Tuomas/Documents/COMP.CS.320/tuomas/python/data/dataD3.csv").cache()
 
     # the data frame to be used in task 3 (based on dataD2 but containing numeric labels)
@@ -85,5 +102,11 @@ class Assignment:
             pipeline: Pipeline = Pipeline(stages=[va, scaler, kmeans])
             dfWithPredictions: DataFrame = pipeline.fit(df).transform(df)
             scores.append((k, evaluator.evaluate(dfWithPredictions)))
+
+        # visualize scores
+        plt.xlabel("K")
+        plt.ylabel("Silhouette score")
+        plt.scatter(*zip(*scores))
+        plt.show()
         return scores
 

@@ -73,33 +73,40 @@ class Assignment:
     @staticmethod
     def task1(df: DataFrame, k: int) -> List[Tuple[float, float]]:
         va: VectorAssembler = VectorAssembler(inputCols=['a', 'b'], outputCol='features')
-        scaler: MinMaxScaler = MinMaxScaler(inputCol="features", outputCol="scaledFeatures")
+        scaler: StandardScaler = StandardScaler(inputCol="features", outputCol="scaledFeatures",
+                                                withStd=True, withMean=False)
         kmeans: KMeans = KMeans(featuresCol="scaledFeatures", k=k, seed=1)
         pipeline: Pipeline = Pipeline(stages=[va, scaler, kmeans])
         model: PipelineModel = pipeline.fit(df)
-        clusters: List[Tuple[float, float]] = list(tuple([tuple(center) for center in model.stages[2].clusterCenters()]))
+        clusters: List[Tuple[float, float]] = list(tuple([tuple(center * model.stages[1].std)
+                                                          for center in model.stages[2].clusterCenters()]))
         return clusters
 
     # Calculate cluster means for three-dimensional data
     @staticmethod
     def task2(df: DataFrame, k: int) -> List[Tuple[float, float, float]]:
         va: VectorAssembler = VectorAssembler(inputCols=['a', 'b', 'c'], outputCol='features')
-        scaler: MinMaxScaler = MinMaxScaler(inputCol="features", outputCol="scaledFeatures")
+        scaler: StandardScaler = StandardScaler(inputCol="features", outputCol="scaledFeatures",
+                                                withStd=True, withMean=False)
         kmeans: KMeans = KMeans(featuresCol="scaledFeatures", k=k, seed=1)
         pipeline: Pipeline = Pipeline(stages=[va, scaler, kmeans])
         model: PipelineModel = pipeline.fit(df)
-        clusters: List[Tuple[float, float, float]] = list(tuple([tuple(center) for center in model.stages[2].clusterCenters()]))
+        clusters: List[Tuple[float, float, float]] = list(tuple([tuple(center * model.stages[1].std)
+                                                                 for center in model.stages[2].clusterCenters()]))
         return clusters
 
     # Calculate two cluster means that have largest count of Fatal data points
     @staticmethod
     def task3(df: DataFrame, k: int) -> List[Tuple[float, float]]:
         va: VectorAssembler = VectorAssembler(inputCols=['a', 'b', 'LABEL_NUMERIC'], outputCol='features')
-        kmeans: KMeans = KMeans(featuresCol='features', k=k)
-        pipeline: Pipeline = Pipeline(stages=[va, kmeans])
+        scaler: StandardScaler = StandardScaler(inputCol="features", outputCol="scaledFeatures",
+                                                withStd=True, withMean=False)
+        kmeans: KMeans = KMeans(featuresCol='scaledFeatures', k=k)
+        pipeline: Pipeline = Pipeline(stages=[va, scaler, kmeans])
         model: PipelineModel = pipeline.fit(df)
 
-        clusters: List[Tuple[float, float, float]] = list(tuple([tuple(center) for center in model.stages[1].clusterCenters()]))
+        clusters: List[Tuple[float, float, float]] = list(tuple([tuple(center * model.stages[1].std)
+                                                                 for center in model.stages[2].clusterCenters()]))
         clustersTop2Fatal: List[Tuple[float, float]] = \
             [t[:2] for t in sorted(clusters, key=lambda x: x[2], reverse=True)[0:2]]
         return clustersTop2Fatal
@@ -124,6 +131,8 @@ class Assignment:
         plt.xlabel("K")
         plt.ylabel("Silhouette score")
         plt.scatter(*zip(*scores))
-        plt.show()
+        plt.show(block=False)
+        plt.pause(7)
+        plt.close()
         return scores
 

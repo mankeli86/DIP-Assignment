@@ -7,9 +7,7 @@ from pyspark.sql import SparkSession
 from pyspark.sql import functions
 from pyspark.ml.feature import VectorAssembler
 from pyspark.ml.clustering import KMeans
-from pyspark.ml.clustering import KMeansModel
 from pyspark.ml.feature import StringIndexer
-from pyspark.ml.feature import MinMaxScaler
 from pyspark.ml.feature import StandardScaler
 from pyspark.ml import Pipeline, PipelineModel
 from pyspark.ml.evaluation import ClusteringEvaluator
@@ -72,7 +70,7 @@ class Assignment:
     # Calculate cluster means for two-dimensional data
     @staticmethod
     def task1(df: DataFrame, k: int) -> List[Tuple[float, float]]:
-        va: VectorAssembler = VectorAssembler(inputCols=['a', 'b'], outputCol='features')
+        va: VectorAssembler = VectorAssembler(inputCols=["a", "b"], outputCol="features")
         scaler: StandardScaler = StandardScaler(inputCol="features", outputCol="scaledFeatures",
                                                 withStd=True, withMean=False)
         kmeans: KMeans = KMeans(featuresCol="scaledFeatures", k=k, seed=1)
@@ -85,7 +83,7 @@ class Assignment:
     # Calculate cluster means for three-dimensional data
     @staticmethod
     def task2(df: DataFrame, k: int) -> List[Tuple[float, float, float]]:
-        va: VectorAssembler = VectorAssembler(inputCols=['a', 'b', 'c'], outputCol='features')
+        va: VectorAssembler = VectorAssembler(inputCols=["a", "b", "c"], outputCol="features")
         scaler: StandardScaler = StandardScaler(inputCol="features", outputCol="scaledFeatures",
                                                 withStd=True, withMean=False)
         kmeans: KMeans = KMeans(featuresCol="scaledFeatures", k=k, seed=1)
@@ -98,10 +96,10 @@ class Assignment:
     # Calculate two cluster means that have largest count of Fatal data points
     @staticmethod
     def task3(df: DataFrame, k: int) -> List[Tuple[float, float]]:
-        va: VectorAssembler = VectorAssembler(inputCols=['a', 'b', 'LABEL_NUMERIC'], outputCol='features')
+        va: VectorAssembler = VectorAssembler(inputCols=["a", "b", "LABEL_NUMERIC"], outputCol="features")
         scaler: StandardScaler = StandardScaler(inputCol="features", outputCol="scaledFeatures",
                                                 withStd=True, withMean=False)
-        kmeans: KMeans = KMeans(featuresCol='scaledFeatures', k=k)
+        kmeans: KMeans = KMeans(featuresCol="scaledFeatures", k=k, seed=1)
         pipeline: Pipeline = Pipeline(stages=[va, scaler, kmeans])
         model: PipelineModel = pipeline.fit(df)
 
@@ -115,8 +113,9 @@ class Assignment:
     @staticmethod
     def task4(df: DataFrame, low: int, high: int) -> List[Tuple[int, float]]:
         scores: List[Tuple[int, float]] = []
-        va: VectorAssembler = VectorAssembler(inputCols=['a', 'b'], outputCol='features')
-        scaler: MinMaxScaler = MinMaxScaler(inputCol="features", outputCol="scaledFeatures")
+        va: VectorAssembler = VectorAssembler(inputCols=["a", "b"], outputCol="features")
+        scaler: StandardScaler = StandardScaler(inputCol="features", outputCol="scaledFeatures",
+                                                withStd=True, withMean=False)
         evaluator: ClusteringEvaluator = ClusteringEvaluator(featuresCol="scaledFeatures",
                                                              metricName='silhouette',
                                                              distanceMeasure='squaredEuclidean')

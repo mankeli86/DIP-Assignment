@@ -119,7 +119,7 @@ class Assignment:
         evaluator: ClusteringEvaluator = ClusteringEvaluator(featuresCol="scaledFeatures",
                                                              metricName='silhouette',
                                                              distanceMeasure='squaredEuclidean')
-        # calculate different k values
+        # calculate scores for different k values
         for k in range(low, high + 1):
             kmeans: KMeans = KMeans(featuresCol="scaledFeatures", k=k, seed=1)
             pipeline: Pipeline = Pipeline(stages=[va, scaler, kmeans])
